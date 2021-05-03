@@ -47,8 +47,8 @@ def get_chapter_length(arr_of_chapters):
         for img in chapter_img_list_container.select('img'):
             chapter_len += int(img.get('height')[:-2])
         obj = {
-            'name': chapter['name'],
-            'length': chapter_len
+            "name": "" + chapter['name'] + "",
+            "length": chapter_len
         }
         print(obj)
         hclw_chapters_txt.write(repr(obj) + '\n')
