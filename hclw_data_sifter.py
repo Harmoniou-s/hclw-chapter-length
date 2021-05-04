@@ -9,16 +9,19 @@ def get_data():
     raw_data_arr = hclw_chapters_txt.readlines()
     return raw_data_arr
 
-def get_average_len(data_arr):
-    total = 0
+def get_stats(data_arr):
+    hclw_stats_txt = open("hclw_stats.txt","w")
+    total_chapters = 0
     sum_of_lengths = 0
+    sum_of_likes = 0
+    sum_of_comments = 0
     for data in data_arr:
         data = json.loads(data)
-        total += 1
+        total_chapters += 1
         sum_of_lengths += data['length']
-    return sum_of_lengths/total
-
-def get_stats(data_arr):
+        sum_of_likes += data['likes']
+        sum_of_comments += data['comments']
+    
     stats = {
         'longest': {
             'name': '',
@@ -27,7 +30,10 @@ def get_stats(data_arr):
         'shortest': {
             'name': '',
             'length': json.loads(data_arr[0])['length']
-        }
+        },
+        'average_length': sum_of_lengths/total_chapters,
+        'average_likes': sum_of_likes/total_chapters,
+        'average_comments': sum_of_comments/total_chapters,
     }
     
     for data in data_arr:
@@ -38,7 +44,7 @@ def get_stats(data_arr):
         if data['length'] < stats['shortest']['length']:
             stats['shortest']['length'] = data['length']
             stats['shortest']['name'] = data['name'] 
-    return stats
+    hclw_stats_txt.write(str(stats))
 
 
 def plot_data(data_arr):
@@ -174,9 +180,52 @@ def plot_chapters_in_arcs(arcs_arr):
     plt.suptitle('HCLW Chapter Length Seperated By Arc')
     plt.show()
 
+def plot_likes_in_arcs(arcs_arr):
+    fig = plt.figure()
+    gs = fig.add_gridspec(1, 38, wspace=0)
+    axs = gs.subplots(sharey='row')
+    plt.subplots_adjust(left=0.07, right=0.98, top=0.7, bottom=0.155)
+    i = 0
+    for arc in arcs_arr:
+        if i==38:
+            continue
+        first_arc_chapter = json.loads((arc['arc_arr'])[0])
+        for chapter in arc['arc_arr']:
+            index = arc['arc_arr'].index(chapter)
+            chapter = json.loads(chapter)
+            axs[arcs_arr.index(arc)].bar(chapter['name'], chapter['likes'], color=arc['color'])
+            axs[arcs_arr.index(arc)].set_title(arc['name'], rotation=90)
+            axs[arcs_arr.index(arc)].set_xticklabels([])
+            axs[arcs_arr.index(arc)].set_xlabel(first_arc_chapter['name'], rotation=90)
+        i+=1
+    axs[0].set_ylabel("Chapter Likes")
+    plt.suptitle('HCLW Likes Comments Seperated By Arc')
+    plt.show()
+
+def plot_comments_in_arcs(arcs_arr):
+    fig = plt.figure()
+    gs = fig.add_gridspec(1, 38, wspace=0)
+    axs = gs.subplots(sharey='row')
+    plt.subplots_adjust(left=0.07, right=0.98, top=0.7, bottom=0.155)
+    i = 0
+    for arc in arcs_arr:
+        if i==38:
+            continue
+        first_arc_chapter = json.loads((arc['arc_arr'])[0])
+        for chapter in arc['arc_arr']:
+            index = arc['arc_arr'].index(chapter)
+            chapter = json.loads(chapter)
+            axs[arcs_arr.index(arc)].bar(chapter['name'], chapter['comments'], color=arc['color'])
+            axs[arcs_arr.index(arc)].set_title(arc['name'], rotation=90)
+            axs[arcs_arr.index(arc)].set_xticklabels([])
+            axs[arcs_arr.index(arc)].set_xlabel(first_arc_chapter['name'], rotation=90)
+        i+=1
+    axs[0].set_ylabel("Chapter Comments")
+    plt.suptitle('HCLW Chapter Comments Seperated By Arc')
+    plt.show()
+
 if __name__ == "__main__":
     data = get_data()
     arcs_data = get_arcs_data(data)
-    average = get_average_len(data)
-    stats = get_stats(data)
+    get_stats(data)
     plot_chapters_in_arcs(arcs_data)
