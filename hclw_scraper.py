@@ -49,7 +49,6 @@ def get_chapter_length(arr_of_chapters):
             chapter_len += int(img.get('height')[:-2])
         time.sleep(1)
         comment_count = driver.find_element_by_class_name('u_cbox_count').text.replace(',','')
-        print(comment_count)
         obj = {
             "name": "" + chapter['name'] + "",
             "length": chapter_len,
