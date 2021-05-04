@@ -20,11 +20,12 @@ def get_chapters():
             
             url = chapter.attrs['href']
             name = chapter.find('span', {'class': 'subj'}).text.strip()
-            
+            likes = chapter.find('span', {'class': 'like_area'}).text.strip().replace('like', '').replace(',','')
             chapter_info = {
                 'url': url,
                 'name': name,
-                'len': ''
+                'len': '',
+                'likes': int(likes)
             }
             # sends formatted information to function that will posts to database
             arr_of_chapters_flipped.insert(0, chapter_info)
@@ -46,9 +47,14 @@ def get_chapter_length(arr_of_chapters):
         chapter_len = 0
         for img in chapter_img_list_container.select('img'):
             chapter_len += int(img.get('height')[:-2])
+        time.sleep(1)
+        comment_count = driver.find_element_by_class_name('u_cbox_count').text.replace(',','')
+        print(comment_count)
         obj = {
             "name": "" + chapter['name'] + "",
-            "length": chapter_len
+            "length": chapter_len,
+            "likes": chapter['likes'],
+            "comments": int(comment_count)
         }
         print(obj)
         hclw_chapters_txt.write(repr(obj) + '\n')
