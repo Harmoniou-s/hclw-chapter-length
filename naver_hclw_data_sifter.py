@@ -2,24 +2,25 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import codecs
 
 #this will do stuff like graph the data, show the average length, etc
 def get_data():
-    hclw_chapters_txt = open("hclw_chapters.txt","r")
-    raw_data_arr = hclw_chapters_txt.readlines()
+    naver_hclw_chapters_txt = open("naver_hclw_chapters.txt","r", encoding="utf-16")
+    raw_data_arr = naver_hclw_chapters_txt.readlines()
     return raw_data_arr
 
 def get_stats(data_arr):
-    hclw_stats_txt = open("hclw_stats.txt","w")
+    naver_hclw_stats_txt = open("naver_hclw_stats.txt","w", encoding="utf-16")
     total_chapters = 0
     sum_of_lengths = 0
-    sum_of_likes = 0
+    sum_of_participation = 0
     sum_of_comments = 0
     for data in data_arr:
         data = json.loads(data)
         total_chapters += 1
         sum_of_lengths += data['length']
-        sum_of_likes += data['likes']
+        sum_of_participation += int(data['participation'])
         sum_of_comments += data['comments']
     
     stats = {
@@ -32,7 +33,7 @@ def get_stats(data_arr):
             'length': json.loads(data_arr[0])['length']
         },
         'average_length': sum_of_lengths/total_chapters,
-        'average_likes': sum_of_likes/total_chapters,
+        'average_participation': sum_of_participation/total_chapters,
         'average_comments': sum_of_comments/total_chapters,
     }
     
@@ -44,7 +45,7 @@ def get_stats(data_arr):
         if data['length'] < stats['shortest']['length']:
             stats['shortest']['length'] = data['length']
             stats['shortest']['name'] = data['name'] 
-    hclw_stats_txt.write(str(stats))
+    naver_hclw_stats_txt.write(str(stats))
 
 
 def plot_data(data_arr):
@@ -64,7 +65,7 @@ def plot_data(data_arr):
     ax.bar(labels,lengths)
     plt.show()
 
-def plot_likes(data_arr):
+def plot_participation(data_arr):
     fig, ax = plt.subplots()
     labels = []
     lengths = []
@@ -72,12 +73,12 @@ def plot_likes(data_arr):
     for data in data_arr:
         labels.append(data_arr.index(data) + 1)
         data = json.loads(data)
-        lengths.append(data['likes'])
+        lengths.append(int(data['participation']))
         
-    ax.set_ylabel('Chapter Likes Count')
+    ax.set_ylabel('Chapter participation Count')
     ax.set_xlabel('Chapter Number')
     plt.xticks(rotation=90)
-    ax.set_title('HCLW Chapter Likes Bar Graph')
+    ax.set_title('HCLW Chapter participation Bar Graph')
     ax.bar(labels,lengths)
     plt.show()
 
@@ -137,7 +138,7 @@ def get_arcs_data(data_arr):
         { 'name': 'demon_world', 'arc_arr': data_arr[244:253], 'color': (random.random(), random.random(), random.random()) },
         { 'name': 'advent_of_the_demon_king', 'arc_arr': data_arr[253:262], 'color': (random.random(), random.random(), random.random()) },
         { 'name': 'retribution', 'arc_arr': data_arr[262:269], 'color': (random.random(), random.random(), random.random()) },
-        { 'name': 'current', 'arc_arr': data_arr[269:272], 'color': (random.random(), random.random(), random.random()) },
+        { 'name': 'current', 'arc_arr': data_arr[269:276], 'color': (random.random(), random.random(), random.random()) },
     ]
 
 def plot_arcs(arcs_arr):
@@ -158,6 +159,7 @@ def plot_arcs(arcs_arr):
     ax.bar(labels,lengths)
     plt.show()
 
+
 def plot_x_in_arcs(arcs_arr, x, offset, label):
     fig = plt.figure()
     gs = fig.add_gridspec(1, 38, wspace=0)
@@ -177,7 +179,7 @@ def plot_x_in_arcs(arcs_arr, x, offset, label):
             axs[arcs_arr.index(arc)].set_xlabel(first_arc_chapter['name'], rotation=90)
         i+=1
     axs[0].set_ylabel("Chapter " + label)
-    plt.suptitle('HCLW Chapter ' + label + ' Seperated By Arc')
+    plt.suptitle('Naver HCLW Chapter ' + label + ' Seperated By Arc')
     plt.show()
 
 if __name__ == "__main__":
@@ -186,4 +188,5 @@ if __name__ == "__main__":
     get_stats(data)
     plot_x_in_arcs(arcs_data, 'length', 0, 'Length(px)')
     plot_x_in_arcs(arcs_data, 'comments', 0, 'Comments')
-    plot_x_in_arcs(arcs_data, 'likes', 0, 'Likes')
+    plot_x_in_arcs(arcs_data, 'participation', 0, 'Participation')
+    plot_x_in_arcs(arcs_data, 'rating', 0, 'Rating')
