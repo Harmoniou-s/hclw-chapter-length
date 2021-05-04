@@ -228,4 +228,4 @@ if __name__ == "__main__":
     data = get_data()
     arcs_data = get_arcs_data(data)
     get_stats(data)
-    plot_chapters_in_arcs(arcs_data)
+    plot_arcs(arcs_data)
