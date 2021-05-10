@@ -8,12 +8,12 @@ from io import BytesIO
 from PIL import Image
 
 
-def get_chapters():
+def get_chapters(start, end):
     # Optional argument, if not specified will search path.
     driver = webdriver.Chrome()
-    i = 28
+    i = start
     arr_of_chapters = []
-    while i>0:
+    while i>end:
         driver.get(
             'https://comic.naver.com/webtoon/list.nhn?titleId=670152&page=' + str(i))
         html = driver.page_source
@@ -35,14 +35,18 @@ def get_chapters():
         arr_of_chapters += arr_of_chapters_flipped
         i-=1
     driver.close()
-    get_chapter_length(arr_of_chapters)
+    return get_chapter_length(arr_of_chapters)
     
+def scrape_latest():
+    chapter_text = open("naver_hclw_chapters.txt","r", encoding="utf-16")
+    print(chapter_text.readlines())
+    latest_chapters = get_chapters(1, 0)
+    print(latest_chapters)
 
-def get_chapter_length(arr_of_chapters):
-    hclw_chapters_txt = open("naver_hclw_chapters.txt","w", encoding="utf-16")
-    arr_of_chapters_without_link = []
+def get_chapter_length(arr_of_chapters, write=False):
+    print(write)
+    return_chapter_arr = []
     driver = webdriver.Chrome()
-    arr_of_chapter_len = []
     for chapter in arr_of_chapters: 
         driver.get(chapter['url'])
         html = driver.page_source
@@ -60,17 +64,25 @@ def get_chapter_length(arr_of_chapters):
         driver.switch_to.frame(driver.find_element_by_id("commentIframe"))
         comment_count = driver.find_element_by_class_name('u_cbox_count').text.replace(',','')
         obj = {
-            "name": "" + chapter['name'] + "",
-            "length": chapter_len,
-            "rating": chapter['rating'],
-            "participation": participation,
-            "comments": int(comment_count)
+            '"name"': '"' + chapter['name'] + '"',
+            '"length"': float(chapter_len),
+            '"rating"': float(chapter['rating']),
+            '"participation"': float(participation),
+            '"comments"': float(comment_count)
         }
-        print(obj)
-        hclw_chapters_txt.write(repr(obj) + '\n')
+        print(repr(obj).replace("'", ''))
+        return_chapter_arr.append(obj)
+    if write:
+        write_chapters(return_chapter_arr)
     driver.close()
+    return return_chapter_arr
+    
 
+def write_chapters(chapter_arr):
+    hclw_chapters_txt = open("naver_hclw_chapters.txt","w", encoding="utf-16")
+    for chapter in chapter_arr:
+        hclw_chapters_txt.write(repr(chapter).replace("'", '') + '\n')
 
 
 if __name__ == "__main__":
-    get_chapters()
+    scrape_latest()

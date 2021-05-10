@@ -160,7 +160,8 @@ def plot_arcs(arcs_arr):
 
 def plot_x_in_arcs(arcs_arr, x, offset, label):
     fig = plt.figure()
-    gs = fig.add_gridspec(1, 38, wspace=0)
+    fig.set_size_inches(32, 18)
+    gs = fig.add_gridspec(1, 38-offset, wspace=0)
     axs = gs.subplots(sharey='row')
     plt.subplots_adjust(left=0.07, right=0.98, top=0.7, bottom=0.155)
     i = 0
@@ -171,14 +172,16 @@ def plot_x_in_arcs(arcs_arr, x, offset, label):
         for chapter in arc['arc_arr']:
             index = arc['arc_arr'].index(chapter)
             chapter = json.loads(chapter)
-            axs[arcs_arr.index(arc)].bar(chapter['name'], float(chapter[x]), color=arc['color'])
-            axs[arcs_arr.index(arc)].set_title(arc['name'], rotation=90)
-            axs[arcs_arr.index(arc)].set_xticklabels([])
-            axs[arcs_arr.index(arc)].set_xlabel(first_arc_chapter['name'], rotation=90)
+            axs[arcs_arr.index(arc)-offset].bar(chapter['name'], float(chapter[x]), color=arc['color'])
+            axs[arcs_arr.index(arc)-offset].set_title(arc['name'], rotation=90)
+            axs[arcs_arr.index(arc)-offset].set_xticklabels([])
+            axs[arcs_arr.index(arc)-offset].set_xlabel(first_arc_chapter['name'], rotation=90)
         i+=1
     axs[0].set_ylabel("Chapter " + label)
     plt.suptitle('HCLW Chapter ' + label + ' Seperated By Arc')
-    plt.show()
+    manager = plt.get_current_fig_manager()
+    manager.resize(*manager.window.maxsize())
+    plt.savefig('./images/HCLW_Chapter_' + label + '_Seperated_By_Arc.png', bbox_inches='tight')
 
 if __name__ == "__main__":
     data = get_data()
@@ -187,3 +190,4 @@ if __name__ == "__main__":
     plot_x_in_arcs(arcs_data, 'length', 0, 'Length(px)')
     plot_x_in_arcs(arcs_data, 'comments', 0, 'Comments')
     plot_x_in_arcs(arcs_data, 'likes', 0, 'Likes')
+    #plot_data(data)

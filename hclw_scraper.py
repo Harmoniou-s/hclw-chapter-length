@@ -1,15 +1,16 @@
 import time
 
+import json
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
 
-def get_chapters():
+def get_chapters(start, end):
     # Optional argument, if not specified will search path.
     driver = webdriver.Chrome()
-    i = 28
+    i = start
     arr_of_chapters = []
-    while i>0:
+    while i>end:
         driver.get(
             'https://www.webtoons.com/en/action/hardcore-leveling-warrior/list?title_no=1221&page=' + str(i))
         html = driver.page_source
@@ -32,13 +33,35 @@ def get_chapters():
         arr_of_chapters += arr_of_chapters_flipped
         i-=1
     driver.close()
-    get_chapter_length(arr_of_chapters)
+    return get_chapter_length(arr_of_chapters)
 
-def get_chapter_length(arr_of_chapters):
-    hclw_chapters_txt = open("hclw_chapters.txt","w")
-    arr_of_chapters_without_link = []
+def scrape_latest():
+    chapter_text = open("hclw_chapters.txt","a")
+    readable_text = open("hclw_chapters.txt","r")
+    latest_chapters_from_text = readable_text.readlines()[-15:]
+    if latest_chapters_from_text[-1] != '\n':
+        chapter_text.write("\n")
+    latest_chapters_from_scrape = get_chapters(1, 0)
+    for scrape_chapter in latest_chapters_from_scrape:
+        #checks if chapter is in text file
+        scrape_chapter = json.loads(scrape_chapter.replace("'", ''))
+        add_chapter = True
+        for chapter in latest_chapters_from_text:
+            if chapter == '\n':
+                continue
+            chapter = json.loads(chapter.replace('\n', ''))
+            if scrape_chapter.get('name') == chapter.get('name'):
+                add_chapter = False
+                break
+            else:
+                add_chapter = True
+        if add_chapter:
+            print("Adding Chapter " + json.dumps(scrape_chapter))
+            chapter_text.write(json.dumps(scrape_chapter) + "\n")
+
+def get_chapter_length(arr_of_chapters, write=False):
+    hclw_chapters = []
     driver = webdriver.Chrome()
-    arr_of_chapter_len = []
     for chapter in arr_of_chapters: 
         driver.get(chapter['url'])
         html = driver.page_source
@@ -50,16 +73,21 @@ def get_chapter_length(arr_of_chapters):
         time.sleep(1)
         comment_count = driver.find_element_by_class_name('u_cbox_count').text.replace(',','')
         obj = {
-            "name": "" + chapter['name'] + "",
+            "name":  chapter['name'],
             "length": chapter_len,
             "likes": chapter['likes'],
             "comments": int(comment_count)
         }
-        print(obj)
-        hclw_chapters_txt.write(repr(obj) + '\n')
+        hclw_chapters.append(json.dumps(obj))
+    if write:
+        write_chapters(hclw_chapters)
     driver.close()
+    return hclw_chapters
 
-
+def write_chapters(chapter_arr):
+    hclw_chapters_txt = open("hclw_chapters.txt","w")
+    for chapter in chapter_arr:
+        hclw_chapters_txt.write(repr(chapter).replace("'", '') + '\n')
 
 if __name__ == "__main__":
-    get_chapters()
+    scrape_latest()

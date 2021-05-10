@@ -6,8 +6,9 @@ import codecs
 
 #this will do stuff like graph the data, show the average length, etc
 def get_data():
-    naver_hclw_chapters_txt = open("naver_hclw_chapters.txt","r", encoding="utf-16")
+    naver_hclw_chapters_txt = open("naver_hclw_chapters.txt","r", encoding="utf-8-sig")
     raw_data_arr = naver_hclw_chapters_txt.readlines()
+    print(raw_data_arr)
     return raw_data_arr
 
 def get_stats(data_arr):
@@ -16,12 +17,14 @@ def get_stats(data_arr):
     sum_of_lengths = 0
     sum_of_participation = 0
     sum_of_comments = 0
+    sum_of_rating = 0.0
     for data in data_arr:
         data = json.loads(data)
         total_chapters += 1
         sum_of_lengths += data['length']
         sum_of_participation += int(data['participation'])
         sum_of_comments += data['comments']
+        sum_of_rating += float(data['rating'])
     
     stats = {
         'longest': {
@@ -35,6 +38,7 @@ def get_stats(data_arr):
         'average_length': sum_of_lengths/total_chapters,
         'average_participation': sum_of_participation/total_chapters,
         'average_comments': sum_of_comments/total_chapters,
+        'average_rating+8': sum_of_rating/total_chapters
     }
     
     for data in data_arr:
@@ -61,7 +65,7 @@ def plot_data(data_arr):
     ax.set_ylabel('Chapter Length(1000px)')
     ax.set_xlabel('Chapter Number')
     plt.xticks(rotation=90)
-    ax.set_title('HCLW Chapter Length Bar Graph')
+    ax.set_title('Naver HCLW Chapter Length Bar Graph')
     ax.bar(labels,lengths)
     plt.show()
 
@@ -73,7 +77,7 @@ def plot_participation(data_arr):
     for data in data_arr:
         labels.append(data_arr.index(data) + 1)
         data = json.loads(data)
-        lengths.append(int(data['participation']))
+        lengths.append(float(data['participation']))
         
     ax.set_ylabel('Chapter participation Count')
     ax.set_xlabel('Chapter Number')
@@ -95,7 +99,7 @@ def plot_comments(data_arr):
     ax.set_ylabel('Chapter Comment Count')
     ax.set_xlabel('Chapter Number')
     plt.xticks(rotation=90)
-    ax.set_title('HCLW Chapter Comments Bar Graph')
+    ax.set_title('Naver HCLW Chapter Comments Bar Graph')
     ax.bar(labels,lengths)
     plt.show()
 
@@ -148,7 +152,7 @@ def plot_arcs(arcs_arr):
     ax.legend()
     ax.set_ylabel('Arc Length(10000px)')
     plt.xticks(rotation=90)
-    ax.set_title('HCLW Arc Length Bar Graph')
+    ax.set_title('Naver HCLW Arc Length Bar Graph')
     for arc in arcs_arr:
         labels.append(arc['name'])
         arc_length_sum = 0
@@ -162,7 +166,8 @@ def plot_arcs(arcs_arr):
 
 def plot_x_in_arcs(arcs_arr, x, offset, label):
     fig = plt.figure()
-    gs = fig.add_gridspec(1, 38, wspace=0)
+    gs = fig.add_gridspec(1, 38-offset, wspace=0)
+    fig.set_size_inches(32, 18)
     axs = gs.subplots(sharey='row')
     plt.subplots_adjust(left=0.07, right=0.98, top=0.7, bottom=0.155)
     i = 0
@@ -173,14 +178,16 @@ def plot_x_in_arcs(arcs_arr, x, offset, label):
         for chapter in arc['arc_arr']:
             index = arc['arc_arr'].index(chapter)
             chapter = json.loads(chapter)
-            axs[arcs_arr.index(arc)].bar(chapter['name'], float(chapter[x]), color=arc['color'])
-            axs[arcs_arr.index(arc)].set_title(arc['name'], rotation=90)
-            axs[arcs_arr.index(arc)].set_xticklabels([])
-            axs[arcs_arr.index(arc)].set_xlabel(first_arc_chapter['name'], rotation=90)
+            axs[arcs_arr.index(arc)-offset].bar(chapter['name'], float(chapter[x]), color=arc['color'])
+            axs[arcs_arr.index(arc)-offset].set_title(arc['name'], rotation=90)
+            axs[arcs_arr.index(arc)-offset].set_xticklabels([])
+            axs[arcs_arr.index(arc)-offset].set_xlabel(first_arc_chapter['name'], rotation=90)
         i+=1
     axs[0].set_ylabel("Chapter " + label)
     plt.suptitle('Naver HCLW Chapter ' + label + ' Seperated By Arc')
-    plt.show()
+    manager = plt.get_current_fig_manager()
+    manager.resize(*manager.window.maxsize())
+    plt.savefig('./images/Naver_HCLW_Chapter_' + label + '_Seperated_By_Arc.png', bbox_inches='tight')
 
 if __name__ == "__main__":
     data = get_data()
