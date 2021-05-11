@@ -213,4 +213,3 @@ if __name__ == "__main__":
     data = get_data()
     arcs_data = get_arcs_data(data)
     get_stats(data)
-    generate_report_image(arcs_data)
