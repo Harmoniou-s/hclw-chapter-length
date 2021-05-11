@@ -1,5 +1,6 @@
 import time
 
+import json
 import codecs
 from requests import get
 from bs4 import BeautifulSoup
@@ -38,10 +39,28 @@ def get_chapters(start, end):
     return get_chapter_length(arr_of_chapters)
     
 def scrape_latest():
-    chapter_text = open("naver_hclw_chapters.txt","r", encoding="utf-16")
-    print(chapter_text.readlines())
-    latest_chapters = get_chapters(1, 0)
-    print(latest_chapters)
+    chapter_text = open("naver_hclw_chapters.txt","a", encoding="utf-16")
+    readable_text = open("naver_hclw_chapters.txt","r", encoding="utf-8-sig")
+    latest_chapters_from_text = readable_text.readlines()[-15:]
+    if latest_chapters_from_text[-1] != '\n':
+        chapter_text.write("\n")
+    latest_chapters_from_scrape = get_chapters(1, 0)
+    for scrape_chapter in latest_chapters_from_scrape:
+        #checks if chapter is in text file
+        scrape_chapter = json.loads(scrape_chapter.replace("'", ''))
+        add_chapter = True
+        for chapter in latest_chapters_from_text:
+            if chapter == '\n':
+                continue
+            chapter = json.loads(chapter.replace('\n', ''))
+            if scrape_chapter.get('name') == chapter.get('name'):
+                add_chapter = False
+                break
+            else:
+                add_chapter = True
+        if add_chapter:
+            print("Adding Chapter " + json.dumps(scrape_chapter))
+            chapter_text.write(json.dumps(scrape_chapter) + "\n")
 
 def get_chapter_length(arr_of_chapters, write=False):
     print(write)

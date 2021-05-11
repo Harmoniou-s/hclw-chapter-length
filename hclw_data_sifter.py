@@ -2,6 +2,8 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+from datetime import date
+from PIL import Image
 
 #this will do stuff like graph the data, show the average length, etc
 def get_data():
@@ -178,16 +180,32 @@ def plot_x_in_arcs(arcs_arr, x, offset, label):
             axs[arcs_arr.index(arc)-offset].set_xlabel(first_arc_chapter['name'], rotation=90)
         i+=1
     axs[0].set_ylabel("Chapter " + label)
-    plt.suptitle('HCLW Chapter ' + label + ' Seperated By Arc')
+    plt.suptitle('HCLW Chapter ' + label + ' Seperated By Arc ' + str(date.today()))
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.savefig('./images/HCLW_Chapter_' + label + '_Seperated_By_Arc.png', bbox_inches='tight')
+
+def generate_report_image(arcs_data):
+    plot_x_in_arcs(arcs_data, 'length', 0, 'Length(px)')
+    plot_x_in_arcs(arcs_data, 'comments', 0, 'Comments')
+    plot_x_in_arcs(arcs_data, 'likes', 0, 'Likes')
+
+    length_image = Image.open("./images/HCLW_Chapter_Length(px)_Seperated_By_Arc.png")
+    likes_image = Image.open("./images/HCLW_Chapter_Likes_Seperated_By_Arc.png")
+    comments_image = Image.open("./images/HCLW_Chapter_Comments_Seperated_By_Arc.png")
+    height = length_image.size[1] + likes_image.size[1] + comments_image.size[1]
+    width = length_image.size[0]
+    report_image = Image.new(mode="RGB", size=(width, height), color="WHITE")
+    report_image.paste(length_image, (0,0))
+    report_image.paste(likes_image, (0,length_image.size[1]))
+    report_image.paste(comments_image, (0,length_image.size[1] + likes_image.size[1]))
+    return report_image
+
+
+
 
 if __name__ == "__main__":
     data = get_data()
     arcs_data = get_arcs_data(data)
     get_stats(data)
-    plot_x_in_arcs(arcs_data, 'length', 0, 'Length(px)')
-    plot_x_in_arcs(arcs_data, 'comments', 0, 'Comments')
-    plot_x_in_arcs(arcs_data, 'likes', 0, 'Likes')
     #plot_data(data)

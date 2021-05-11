@@ -3,12 +3,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 import codecs
+from datetime import date
+from PIL import Image
 
 #this will do stuff like graph the data, show the average length, etc
 def get_data():
     naver_hclw_chapters_txt = open("naver_hclw_chapters.txt","r", encoding="utf-8-sig")
     raw_data_arr = naver_hclw_chapters_txt.readlines()
-    print(raw_data_arr)
     return raw_data_arr
 
 def get_stats(data_arr):
@@ -184,16 +185,32 @@ def plot_x_in_arcs(arcs_arr, x, offset, label):
             axs[arcs_arr.index(arc)-offset].set_xlabel(first_arc_chapter['name'], rotation=90)
         i+=1
     axs[0].set_ylabel("Chapter " + label)
-    plt.suptitle('Naver HCLW Chapter ' + label + ' Seperated By Arc')
+    plt.suptitle('Naver HCLW Chapter ' + label + ' Seperated By Arc ' + str(date.today()))
     manager = plt.get_current_fig_manager()
     manager.resize(*manager.window.maxsize())
     plt.savefig('./images/Naver_HCLW_Chapter_' + label + '_Seperated_By_Arc.png', bbox_inches='tight')
+
+def generate_report_image(arcs_data):
+    plot_x_in_arcs(arcs_data, 'length', 0, 'Length(px)')
+    plot_x_in_arcs(arcs_data, 'comments', 0, 'Comments')
+    plot_x_in_arcs(arcs_data, 'participation', 0, 'Participation')
+    plot_x_in_arcs(arcs_data, 'rating', 0, 'Rating')
+
+    length_image = Image.open("./images/Naver_HCLW_Chapter_Length(px)_Seperated_By_Arc.png")
+    participation_image = Image.open("./images/Naver_HCLW_Chapter_Participation_Seperated_By_Arc.png")
+    comments_image = Image.open("./images/Naver_HCLW_Chapter_Comments_Seperated_By_Arc.png")
+    rating_image = Image.open("./images/Naver_HCLW_Chapter_Rating_Seperated_By_Arc.png")
+    height = length_image.size[1] + participation_image.size[1] + comments_image.size[1] + rating_image.size[1]
+    width = length_image.size[0] + participation_image.size[0]
+    report_image = Image.new(mode="RGB", size=(width, height), color="WHITE")
+    report_image.paste(length_image, (length_image.size[0],0))
+    report_image.paste(participation_image, (participation_image.size[0],length_image.size[1]))
+    report_image.paste(comments_image, (comments_image.size[0],length_image.size[1] + participation_image.size[1]))
+    report_image.paste(rating_image, (int(participation_image.size[0]/2),length_image.size[1] + participation_image.size[1] + comments_image.size[1]))
+    return report_image
 
 if __name__ == "__main__":
     data = get_data()
     arcs_data = get_arcs_data(data)
     get_stats(data)
-    plot_x_in_arcs(arcs_data, 'length', 0, 'Length(px)')
-    plot_x_in_arcs(arcs_data, 'comments', 0, 'Comments')
-    plot_x_in_arcs(arcs_data, 'participation', 0, 'Participation')
-    plot_x_in_arcs(arcs_data, 'rating', 0, 'Rating')
+    generate_report_image(arcs_data)
